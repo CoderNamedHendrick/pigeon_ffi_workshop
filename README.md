@@ -1,16 +1,11 @@
-# ffi_right_way
+# FFI the right way: Delivering messages with our helpful messenger bird Pigeon 🐦
 
-A new Flutter project.
+This repository is a demonstration of how to use Pigeon for FFI in Flutter applications. It is a
+simple flutter application that uses pigeon to perform some basic operations on with the native
+platforms.
 
-## Getting Started
+## Getting Started 🚀
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This projects runs on the latest version of Flutter. To run this project, you need to have the
+latest version of Flutter installed on your machine. You can get the latest version of Flutter from
+the official Flutter website.
