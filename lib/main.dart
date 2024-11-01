@@ -1,7 +1,6 @@
+import 'package:ffi_right_way/pigeons/ffi_trw.g.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'add_channel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,18 +31,29 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> implements FfiTRWFlutterApi {
   final firstNumber = TextEditingController();
   final secondNumber = TextEditingController();
 
   double? sum;
 
+  int? result;
+
   bool loading = false;
+
+  bool runningTimer = false;
 
   void _toggleLoading() {
     setState(() {
       loading = !loading;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    FfiTRWFlutterApi.setUp(this);
   }
 
   @override
@@ -60,12 +70,35 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (runningTimer) {
+            await FfiTRWHostApi().stopTimer();
+            if (!context.mounted) return;
+            setState(() {
+              runningTimer = false;
+            });
+          } else {
+            await FfiTRWHostApi().startTimer();
+            if (!context.mounted) return;
+
+            setState(() {
+              runningTimer = true;
+            });
+          }
+        },
+        child: runningTimer ? Icon(Icons.pause) : Icon(Icons.play_arrow),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
+              if (result != null) ...[
+                Text('Result from host platform: $result'),
+                const SizedBox(height: 20),
+              ],
               TextFormField(
                 controller: firstNumber,
                 keyboardType: TextInputType.number,
@@ -105,11 +138,19 @@ class _MyHomePageState extends State<MyHomePage> {
     FocusManager.instance.primaryFocus?.unfocus();
     try {
       _toggleLoading();
-      sum = await add(double.tryParse(firstNumber.text) ?? 0,
+      sum = await FfiTRWHostApi().add(double.tryParse(firstNumber.text) ?? 0,
           double.tryParse(secondNumber.text) ?? 0);
       _toggleLoading();
     } on PlatformException catch (e) {
       debugPrint('An error occurredL $e');
     }
+  }
+
+  @override
+  void onReceiveTimerResult(int result) {
+    if (!mounted) return;
+    setState(() {
+      this.result = result;
+    });
   }
 }

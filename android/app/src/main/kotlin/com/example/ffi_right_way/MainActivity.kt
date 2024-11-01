@@ -1,30 +1,44 @@
 package com.example.ffi_right_way
 
+import FfiTRWFlutterApi
+import FfiTRWHostApi
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.MethodChannel
+import java.util.Timer
+import kotlin.concurrent.timer
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterActivity(), FfiTRWHostApi {
+
+    private var ffiTimer: Timer? = null
+    private var flutterApi: FfiTRWFlutterApi? = null
+    private var result: Long = 0
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        FfiTRWHostApi.setUp(flutterEngine.dartExecutor.binaryMessenger, this)
+        flutterApi = FfiTRWFlutterApi(flutterEngine.dartExecutor.binaryMessenger)
+    }
 
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
-            "ffi_the_right_way"
-        ).setMethodCallHandler { call, result ->
-            if (call.method == "add") {
-                val firstInput = call.argument<Double>("input1")
-                val secondInput = call.argument<Double>("input2")
+    override fun add(a: Double, b: Double): Double {
+        return a + b
+    }
 
-                result.success(addNumbers(firstInput!!, secondInput!!))
-            } else {
-                result.notImplemented()
+    override fun startTimer() {
+        ffiTimer?.cancel()
+        ffiTimer = timer(period = 2000L) {
+            runOnUiThread {
+                flutterApi?.onReceiveTimerResult(result) {
+                    if (it.isSuccess) {
+                        result += 1
+                    }
+                }
             }
         }
     }
 
-    private fun addNumbers(firstInput: Double, secondInput: Double): Double {
-        return firstInput + secondInput
+    override fun stopTimer() {
+        ffiTimer?.cancel()
+        ffiTimer = null
+        result = 0
     }
 }
